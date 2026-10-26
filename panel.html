@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Staff panel</title><meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="panel.css">
+</head><body>
+<header class="hdr"><div class="hdr-in">
+  <div class="hdr-left"><button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <a class="btn btn-ghost sm" href="index.html">Website</a><span class="who" id="who"></span><button class="btn btn-ghost sm" id="logout">Logout</button></div>
+  <a class="logo" href="index.html" aria-label="Website"><img id="logoImg" src="images/logo.png" alt="Company logo"></a>
+</div></header>
+<div class="app"><nav class="side glass" id="side" aria-label="Panel"></nav><main id="view"><p class="empty">Loading…</p></main></div>
+<dialog class="dlg glass" id="dlg"></dialog><div class="toast" id="toast" role="status"></div>
+<script src="config.js"></script><script src="panel.js"></script>
+</body></html>
