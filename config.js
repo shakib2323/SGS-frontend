@@ -1,6 +1,6 @@
 // ===== EDIT THIS FILE ONLY =====
 window.SGS = {
-  API: "http://localhost:8081",          
+  API: "https://sgs-backend-i8im.onrender.com",          
   COMPANY: "Super Glazing System",
   LOGO: "sgs-sgs.png",                 
   TURNSTILE_SITE_KEY: "",                  
