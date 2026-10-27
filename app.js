@@ -219,12 +219,70 @@ const closeBtn = '<button class="btn btn-ghost" data-close>Close</button>';
 dlg.onclick = e => { if (e.target === dlg || e.target.hasAttribute("data-close")) dlg.close(); };
 const err = (el, e) => { el.className = "msg err"; el.textContent = e.fields ? Object.values(e.fields)[0] : e.message; };
 
+// function loginView() {
+//   open(`<div class="top"><h3>Staff login</h3>${closeBtn}</div><form class="form" id="lf"><label>Username<input name="username" required autocomplete="username"></label>
+//     <label>Password<input name="password" type="password" required autocomplete="current-password"></label><button class="btn">Sign in</button><p class="msg" id="lm" role="alert"></p></form>`);
+//   $("#lf").onsubmit = async e => { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target));
+//     try { me = await api("/api/auth/login", { method: "POST", body: d }); home(); } catch (x) { err($("#lm"), x); } };
+// }
+  
 function loginView() {
-  open(`<div class="top"><h3>Staff login</h3>${closeBtn}</div><form class="form" id="lf"><label>Username<input name="username" required autocomplete="username"></label>
-    <label>Password<input name="password" type="password" required autocomplete="current-password"></label><button class="btn">Sign in</button><p class="msg" id="lm" role="alert"></p></form>`);
-  $("#lf").onsubmit = async e => { e.preventDefault(); const d = Object.fromEntries(new FormData(e.target));
-    try { me = await api("/api/auth/login", { method: "POST", body: d }); home(); } catch (x) { err($("#lm"), x); } };
+  open(`<div class="top"><h3>Staff login</h3>${closeBtn}</div>
+    <form class="form" id="lf">
+      <label>Username<input name="username" required autocomplete="username"></label>
+      <label>Password<input name="password" type="password" required autocomplete="current-password"></label>
+      <button class="btn" type="submit">Sign in</button>
+      <p class="msg" id="lm" role="alert"></p>
+    </form>`);
+
+  $("#lf").onsubmit = async e => {
+    e.preventDefault();
+
+    const form = e.currentTarget;
+    const button = form.querySelector('button[type="submit"]');
+    const message = $("#lm");
+    const d = Object.fromEntries(new FormData(form));
+
+    button.disabled = true;
+    message.className = "msg";
+    message.textContent = "Signing in...";
+
+    try {
+      console.log("[login] Sending login request");
+
+      me = await api("/api/auth/login", {
+        method: "POST",
+        body: d
+      });
+
+      console.log("[login] Login response received");
+
+      message.textContent = "Verifying session...";
+
+      const session = await api("/api/auth/me");
+
+      if (!session || !session.id && !session.username && !session.fullName) {
+        throw new Error(
+          "Login succeeded, but the server did not confirm your session."
+        );
+      }
+
+      me = session;
+      console.log("[login] Session verified");
+      location.href = "panel.html";
+
+    } catch (x) {
+      console.error("[login] Error:", x);
+      me = null;
+      message.className = "msg err";
+      message.textContent =
+        x.message || "Login or session verification failed.";
+    } finally {
+      button.disabled = false;
+    }
+  };
 }
+
 function home() { location.href = "panel.html"; }
 $("#loginBtn").onclick = () => me ? home() : loginView();
 api("/api/auth/me").then(u => { me = u; $("#loginBtn").textContent = u.fullName.split(" ")[0]; }).catch(() => {});
