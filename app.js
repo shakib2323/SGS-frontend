@@ -17,16 +17,65 @@ const safe = u => /^https?:\/\//i.test(u || "") ? u : "#";
 const money = n => "\u20B9" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 });
 const WRAP = { "X-Requested-With": "XMLHttpRequest" };
 
+// async function api(path, { method = "GET", body, form } = {}) {
+//   const h = { Accept: "application/json", ...WRAP };
+//   let b;
+//   if (form) b = form; else if (body) { h["Content-Type"] = "application/json"; b = JSON.stringify(body); }
+//   const r = await fetch(C.API + path, { method, headers: h, body: b, credentials: "include" });
+//   if (r.status === 204) return null;
+//   const d = await r.json().catch(() => ({}));
+//   if (!r.ok) { const e = new Error(d.message || "Something went wrong"); e.code = d.code; e.fields = d.fieldErrors; throw e; }
+//   return d;
+// }
+  
 async function api(path, { method = "GET", body, form } = {}) {
-  const h = { Accept: "application/json", ...WRAP };
+  const h = {
+    Accept: "application/json",
+    "X-Requested-With": "XMLHttpRequest"
+  };
+
   let b;
-  if (form) b = form; else if (body) { h["Content-Type"] = "application/json"; b = JSON.stringify(body); }
-  const r = await fetch(C.API + path, { method, headers: h, body: b, credentials: "include" });
+  if (form) {
+    b = form;
+  } else if (body) {
+    h["Content-Type"] = "application/json";
+    b = JSON.stringify(body);
+  }
+
+  let r;
+
+  try {
+    r = await fetch(C.API + path, {
+      method,
+      headers: h,
+      body: b,
+      credentials: "include",
+      signal: AbortSignal.timeout(30000)
+    });
+  } catch (e) {
+    if (e.name === "TimeoutError") {
+      throw new Error("The server did not respond within 30 seconds. Please check the backend on Render.");
+    }
+
+    throw new Error(
+      "Could not connect to the backend. Check Render status and browser Network errors."
+    );
+  }
+
   if (r.status === 204) return null;
+
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) { const e = new Error(d.message || "Something went wrong"); e.code = d.code; e.fields = d.fieldErrors; throw e; }
+
+  if (!r.ok) {
+    const e = new Error(d.message || `Request failed (${r.status})`);
+    e.code = d.code;
+    e.fields = d.fieldErrors;
+    throw e;
+  }
+
   return d;
 }
+
 const load = (path, fn, box) => api("/api/public" + path).then(fn).catch(() => { if (box) box.innerHTML = '<p class="empty">Content is not available right now.</p>'; });
 
 // ---- header ----
