@@ -2,6 +2,18 @@
 const C = window.SGS, $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const safe = u => /^https?:\/\//i.test(u || "") ? u : "#";
+  //newly added 
+  const asset = u => {
+  if (!u) return "";
+  if (/^https?:\/\//i.test(u)) return u;
+
+  const base = C.API.replace(/\/+$/, "");
+  const path = String(u).replace(/^\/+/, "");
+
+  return path.startsWith("files/")
+    ? `${base}/${path}`
+    : `${base}/files/${path}`;
+};
 const money = n => "\u20B9" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 });
 const WRAP = { "X-Requested-With": "XMLHttpRequest" };
 
@@ -47,7 +59,11 @@ addEventListener("resize", () => sl.scrollTo({ left: cur * sl.clientWidth })); p
 load("/services", list => {
   $("#servicesGrid").innerHTML = list.length ? list.map(s => {
     const im = s.images?.[0];
-    return `<article class="card"><div class="im">${im ? `<img loading="lazy" src="${esc(im.thumbUrl || im.imageUrl)}" alt="${esc(s.title)}">` : ""}</div><div class="bd">
+    return `<article class="card"><div class="im">${im ? `<img
+  loading="lazy"
+  src="${esc(asset(x.thumbUrl || x.imageUrl))}"
+  alt="${esc(x.title)}"
+>` : ""}</div><div class="bd">
       <h3>${esc(s.title)}</h3><p>${esc(s.shortDescription)}</p>
       ${s.features?.length ? `<ul class="feat">${s.features.slice(0, 4).map(f => `<li>${esc(f)}</li>`).join("")}</ul>` : ""}
       ${s.warranty ? `<span class="tag">${esc(s.warranty)}</span>` : ""}${s.priceNote ? `<span class="meta">${esc(s.priceNote)}</span>` : ""}</div></article>`;
@@ -84,7 +100,14 @@ function loadGallery(append) {
   api("/api/public/gallery?" + qs({ category: state.gal.cat, q: state.gal.q, page: state.gal.page, size: 18 })).then(p => {
     if (!append) galItems = [];
     const start = galItems.length; galItems.push(...p.content);
-    const html = p.content.map((x, i) => `<figure data-i="${start + i}"><img loading="lazy" src="${esc(x.thumbUrl || x.imageUrl)}" alt="${esc(x.title)}"><figcaption class="glass">${esc(x.title)}</figcaption></figure>`).join("");
+    const html = p.content.map((x, i) => `<figure data-i="${start + i}">
+    // <img loading="lazy" src="${esc(x.thumbUrl || x.imageUrl)}" alt="${esc(x.title)}">
+    <img
+  loading="lazy"
+  src="${esc(asset(x.thumbUrl || x.imageUrl))}"
+  alt="${esc(x.title)}"
+>
+    <figcaption class="glass">${esc(x.title)}</figcaption></figure>`).join("");
     g.innerHTML = append ? g.innerHTML + html : (html || '<p class="empty">No images found.</p>');
     $("#galMore").hidden = p.page + 1 >= p.totalPages;
   }).catch(() => g.innerHTML = '<p class="empty">Content is not available right now.</p>');
